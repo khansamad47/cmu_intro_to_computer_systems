@@ -140,7 +140,9 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  int A = ~(~x &  y);
+  int B = ~( x & ~y);
+  return ~( A & B);
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -149,7 +151,7 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-  return 2;
+  return 1 << 31;
 }
 //2
 /*
@@ -160,7 +162,9 @@ int tmin(void) {
  *   Rating: 2
  */
 int isTmax(int x) {
-  return 2;
+  int TMIN = (1 << 31);
+  int matched = !((x+1) ^ TMIN);
+  return matched;
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -170,7 +174,10 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int a = (x >> 16) & x;
+  int b = (a >> 8) & a;
+  int c = b & 0xAA;
+  return !(c ^ 0xAA);
 }
 /* 
  * negate - return -x 
@@ -180,7 +187,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return (~x) +1;
 }
 //3
 /* 
@@ -188,12 +195,13 @@ int negate(int x) {
  *   Example: isAsciiDigit(0x35) = 1.
  *            isAsciiDigit(0x3a) = 0.
  *            isAsciiDigit(0x05) = 0.
+ *            0011 1001
  *   Legal ops: ! ~ & ^ | + << >>
  *   Max ops: 15
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  return (!((x >> 4) ^ 0x3)) & ((!((x >> 1)^0x1C)) | (!((x>>3)^0x06)));
 }
 /* 
  * conditional - same as x ? y : z 
@@ -203,7 +211,9 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  // Trick used here is that 1111 1111 (0xFF) + 1 is 0x00 and + 0 is 0xFF
+  int x_true = !x+(~0x0);
+  return (x_true&y) | ((~x_true)&z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -213,6 +223,7 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
+    // Risk of overflow
   return 2;
 }
 //4
@@ -225,7 +236,12 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  int a = (x >> 16) | x ;
+  int b = (a >> 8) | a ;
+  int c = (b >> 4) | b;
+  int d = (c >> 2) | c;
+  int e = (d >> 1) | d;
+  return ((~e) & 0x1);
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -255,7 +271,16 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  return 2;
+    unsigned exp = ((0xFF << 23) & uf) >> 23;
+    if (exp == 0xFF) {
+        return uf;
+    }
+    if (exp == 0x00) {
+        return (uf << 1);    
+    }
+    uf += (0x1 << 23);
+    return uf;
+
 }
 /* 
  * float_i2f - Return bit-level equivalent of expression (float) x
